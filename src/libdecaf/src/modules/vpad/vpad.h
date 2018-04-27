@@ -4,6 +4,12 @@
 namespace vpad
 {
 
+/**
+ * \defgroup vpad vpad
+ *
+ * Contains functions to interact with the Gamepad.
+ */
+
 class Module : public kernel::HleModuleImpl<Module>
 {
 public:

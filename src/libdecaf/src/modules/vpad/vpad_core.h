@@ -4,6 +4,12 @@
 namespace vpad
 {
 
+/**
+ * \defgroup vpad_core Core
+ * \ingroup vpad
+ * @{
+ */
+
 void
 VPADInit();
 
@@ -36,5 +42,7 @@ VPADIsEnableGyroZeroDrift(uint32_t chan);
 
 float
 VPADIsEnableGyroDirRevise(uint32_t chan);
+
+/** @} */
 
 } // namespace vpad

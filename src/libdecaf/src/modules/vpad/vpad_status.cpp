@@ -33,6 +33,30 @@ gButtonMap =
 static uint32_t
 gLastButtonState = 0;
 
+/**
+ * Read controller data from the desired Gamepad.
+ *
+ * \note
+ * Retail Wii U systems have a single Gamepad on channel 0.
+ *
+ * \param chan
+ * The channel to read from.
+ *
+ * \param buffers
+ * Pointer to an array of VPADStatus buffers to fill.
+ *
+ * \param count
+ * Number of buffers to fill.
+ *
+ * \param error
+ * Pointer to write read error to (if any). See #VPADReadError for meanings.
+ *
+ * \return
+ * 0 on success or 1 on failure. Check error for reason.
+ *
+ * \sa
+ * - VPADStatus
+ */
 int32_t
 VPADRead(uint32_t chan,
          VPADStatus *buffers,
@@ -111,6 +135,26 @@ VPADRead(uint32_t chan,
    return 1;
 }
 
+/**
+ * Transform touch data according to the current calibration data.
+ * The calibration used may either be the system default or set by the
+ * application via VPADSetTPCalibrationParam().
+ *
+ * \note
+ * Retail Wii U systems have a single Gamepad on channel 0.
+ *
+ * \param chan
+ * Denotes which channel to get the calibration data from.
+ *
+ * \param calibratedData
+ * Pointer to write calibrated touch data to.
+ *
+ * \param uncalibratedData
+ * Pointer to the source data to apply the calibration to.
+ *
+ * \sa
+ * - VPADTouchData
+ */
 void
 VPADGetTPCalibratedPoint(uint32_t chan,
                          VPADTouchData *calibratedData,
@@ -121,6 +165,18 @@ VPADGetTPCalibratedPoint(uint32_t chan,
    std::memcpy(calibratedData, uncalibratedData, sizeof(VPADTouchData));
 }
 
+/**
+ * Determines whether the desired Gamepad has headphones connected.
+ *
+ * \note
+ * Retail Wii U systems have a single Gamepad on channel 0.
+ *
+ * \param chan
+ * The channel of the Gamepad to query.
+ *
+ * \return
+ * true when headphones are connected, false otherwise.
+ */
 bool
 VPADBASEGetHeadphoneStatus(uint32_t chan)
 {

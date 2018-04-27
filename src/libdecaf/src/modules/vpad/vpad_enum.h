@@ -38,8 +38,11 @@ FLAGS_BEG(TouchPadValidity, uint16_t)
 FLAGS_END(TouchPadValidity)
 
 ENUM_BEG(VPADReadError, int32_t)
+   //! No error occured, and data was written to the buffers.
    ENUM_VALUE(Success,            0)
+   //! There was no sample new data available to write.
    ENUM_VALUE(NoSamples,         -1)
+   //! The requested controller or channel was invalid.
    ENUM_VALUE(InvalidController, -2)
 ENUM_END(VPADReadError)
 

@@ -10,16 +10,20 @@ namespace vpad
 {
 
 /**
- * \defgroup vpad_status VPAD Controller Status
+ * \defgroup vpad_status Status
  * \ingroup vpad
  * @{
  */
 
 struct VPADTouchData
 {
+   //! The x-coordinate of the point.
    be_val<uint16_t> x;
+   //! The y-coordinate of the point.
    be_val<uint16_t> y;
+   //! 1 if the point is actually being touched.
    be_val<uint16_t> touched;
+   //! Indicates the accuracy of the coordinates given.
    be_val<TouchPadValidity> validity;
 };
 CHECK_OFFSET(VPADTouchData, 0x00, x);
