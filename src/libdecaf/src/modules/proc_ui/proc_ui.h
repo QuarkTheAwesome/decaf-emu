@@ -4,6 +4,14 @@
 namespace proc_ui
 {
 
+/**
+ * \defgroup proc_ui proc_ui
+ *
+ * Contains functions to manage and interface with the process switching in Cafe
+ * OS, providing a developer-friendly API for moving in and out of the
+ * foreground.
+ */
+
 class Module : public kernel::HleModuleImpl<Module>
 {
 public:
