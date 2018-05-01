@@ -204,7 +204,7 @@ OSGetMemBound(OSMemoryType type,
  * Pointer to write the foreground bucket's size to.
  *
  * \return
- * /c true on success.
+ * \c true on success.
  */
 BOOL
 OSGetForegroundBucket(be_val<uint32_t> *addr,
@@ -234,7 +234,7 @@ OSGetForegroundBucket(be_val<uint32_t> *addr,
  * Pointer to write the bucket area's size to.
  *
  * \return
- * /c true on success.
+ * \c true on success.
  */
 BOOL
 OSGetForegroundBucketFreeArea(be_val<uint32_t> *addr,
@@ -366,11 +366,14 @@ OSGetMapVirtAddrRange(be_val<ppcaddr_t> *start,
  * \param size
  * Size of address range to allocate.
  *
- * \param size
+ * \param alignment
  * Alignment of address range to allocate.
  *
  * \return
  * The starting address of the newly allocated range, or NULL on failure.
+ *
+ * \sa
+ * - OSFreeVirtAddr()
  */
 ppcaddr_t
 OSAllocVirtAddr(ppcaddr_t address,
@@ -382,6 +385,18 @@ OSAllocVirtAddr(ppcaddr_t address,
                                          alignment).getAddress();
 }
 
+/**
+ * Frees a previously allocated virtual address range back to the system.
+ *
+ * \param address
+ * The start of the virtual address range to free.
+ *
+ * \param size
+ * The size of the virtual address range to free.
+ *
+ * \return
+ * \c true on success.
+ */
 BOOL
 OSFreeVirtAddr(ppcaddr_t address,
                uint32_t size)
@@ -391,12 +406,45 @@ OSFreeVirtAddr(ppcaddr_t address,
          ? TRUE : FALSE;
 }
 
+/**
+ * Determines the status of the given virtual memory address - mapped read-write
+ * or read-only, free, allocated or invalid.
+ *
+ * \param address
+ * The virtual address to query.
+ *
+ * \return
+ * The status of the memory address - see kernel::VirtualMemoryType.
+ *
+ * \if false
+ * kernel::VirtualMemoryType is decaf-specific, no? Might want to change this.
+ * \endif
+ */
 kernel::VirtualMemoryType
 OSQueryVirtAddr(ppcaddr_t address)
 {
    return kernel::syscall::queryVirtAddr(cpu::VirtualAddress { address });
 }
 
+/**
+ * Maps a physical address to a virtual address, with a given size and set of
+ * permissions.
+ *
+ * \param virtAddress
+ * The target virtual address for the mapping.
+ *
+ * \param physAddress
+ * Physical address of the memory to back the mapping.
+ *
+ * \param size
+ * Size, in bytes, of the desired mapping. Likely has an alignment requirement.
+ *
+ * \param permission
+ * Permissions to map the memory with: read-only or read-write.
+ *
+ * \return
+ * \c true on success.
+ */
 BOOL
 OSMapMemory(ppcaddr_t virtAddress,
             ppcaddr_t physAddress,
@@ -410,6 +458,18 @@ OSMapMemory(ppcaddr_t virtAddress,
          ? TRUE : FALSE;
 }
 
+/**
+ * Unmaps previously mapped memory.
+ *
+ * \param virtAddress
+ * Starting address of the area to unmap.
+ *
+ * \param size
+ * Size of the memory area to unmap.
+ *
+ * \return
+ * \c true on success.
+ */
 BOOL
 OSUnmapMemory(ppcaddr_t virtAddress,
               uint32_t size)
