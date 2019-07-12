@@ -14,6 +14,7 @@
 #include <fmt/format.h>
 #include <fstream>
 #include <queue>
+#include <iostream>
 
 namespace cafe::sndcore2
 {
@@ -249,6 +250,7 @@ AXSetVoiceDeviceMix(virt_ptr<AXVoice> voice,
 
       for (auto c = 0; c < AXNumTvChannels; ++c) {
          for (auto b = 0; b < AXNumTvBus; ++b) {
+            std::cout << "setting tv " << deviceId <<" ch " << c <<" bus "<<b<<" to " << mixData[c].bus[b].volume << " (" << ufixed_1_15_t::from_data(mixData[c].bus[b].volume) << ") " << mixData[c].bus[b].delta << "\n";
             extras->tvVolume[deviceId][c][b].volume = ufixed_1_15_t::from_data(mixData[c].bus[b].volume);
             extras->tvVolume[deviceId][c][b].delta = ufixed_1_15_t::from_data(mixData[c].bus[b].delta);
          }
@@ -260,6 +262,7 @@ AXSetVoiceDeviceMix(virt_ptr<AXVoice> voice,
 
       for (auto c = 0; c < AXNumDrcChannels; ++c) {
          for (auto b = 0; b < AXNumDrcBus; ++b) {
+            std::cout << "setting drc " << deviceId <<" ch " << c <<" bus "<<b<<" to " << mixData[c].bus[b].volume << " (" << ufixed_1_15_t::from_data(mixData[c].bus[b].volume) << ") " << mixData[c].bus[b].delta << "\n";
             extras->drcVolume[deviceId][c][b].volume = ufixed_1_15_t::from_data(mixData[c].bus[b].volume);
             extras->drcVolume[deviceId][c][b].delta = ufixed_1_15_t::from_data(mixData[c].bus[b].delta);
          }

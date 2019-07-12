@@ -217,6 +217,12 @@ sampleCafeVoices(std::vector<CafeVoice> &voiceInfos)
       voiceInfo.loopOffset = static_cast<int>(voice->offsets.loopOffset);
       voiceInfo.endOffset = static_cast<int>(voice->offsets.endOffset);
       voiceInfo.loopingEnabled = (voice->offsets.loopingEnabled != cafe::sndcore2::AXVoiceLoop::Disabled);
+      for (auto c = 0u; c < 2; c++) {
+          for (auto bus = 0u; bus < 4; bus++) {
+              voiceInfo.tvVolume[c][bus] = (float)extras->tvVolume[0][c][bus].volume;
+              voiceInfo.drcVolume[c][bus] = (float)extras->drcVolume[0][c][bus].volume;
+          }
+      }
    }
 
    return true;

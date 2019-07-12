@@ -279,6 +279,9 @@ struct CafeVoice
 
    //! Looping enabled.
    bool loopingEnabled;
+
+   float tvVolume[2][4];
+   float drcVolume[2][4];
 };
 
 enum class Pm4CaptureState

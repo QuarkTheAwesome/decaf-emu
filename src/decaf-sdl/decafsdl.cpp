@@ -7,6 +7,7 @@
 #include <common/decaf_assert.h>
 #include <fmt/format.h>
 #include <libdebugui/debugui.h>
+#include <libdecaf/src/debugger/debugger.h>
 
 static std::string
 sActiveGfx = "NOGFX";
@@ -252,6 +253,8 @@ DecafSDL::run(const std::string &gamePath)
             break;
          }
       }
+
+      debugger::draw(0, 0);
 
       if (mGameLoaded) {
          Viewport tvViewport, drcViewport;

@@ -5,6 +5,8 @@
 
 #include "cafe/libraries/coreinit/coreinit_scheduler.h"
 #include "cafe/libraries/coreinit/coreinit_thread.h"
+#include "cafe/loader/cafe_loader_loaded_rpl.h"
+#include "cafe/loader/cafe_loader_entry.h"
 
 #include <algorithm>
 #include <common/platform_socket.h>
@@ -151,7 +153,7 @@ void GdbServer::handleQuery(const std::string &command)
       features += "PacketSize=4096";
       features += ";qXfer:features:read+";
       features += ";qXfer:threads:read+";
-      // TODO: features += ";qXfer:libraries:read+";
+      features += ";qXfer:libraries:read+";
       // TODO: features += ";qXfer:memory-map:read+";
       // TODO: features += ";QStartNoAckMode+";
       // TODO: features += ";QThreadEvents+";
@@ -224,6 +226,50 @@ void GdbServer::handleQuery(const std::string &command)
       }
 
       sendCommand(reply);
+   } else if (begins_with(command, "qXfer:libraries:read:")) {
+      fmt::memory_buffer reply;
+      fmt::format_to(reply, "l<?xml version=\"1.0\"?>");
+      fmt::format_to(reply, "<library-list>");
+
+      cafe::loader::lockLoader();
+      for (auto rpl = cafe::loader::getLoadedRplLinkedList(); rpl; rpl = rpl->nextLoadedRpl) {
+         if (!rpl->sectionAddressBuffer ||
+             !rpl->sectionAddressBuffer ||
+             !rpl->moduleNameBuffer ||
+             !rpl->moduleNameLen ||
+             !rpl->sectionAddressBuffer[rpl->elfHeader.shstrndx]) {
+            continue;
+         }
+
+         auto rplName = std::string_view { rpl->moduleNameBuffer.get(),
+                                           rpl->moduleNameLen };
+         auto shStrTab =
+            virt_cast<const char *>(rpl->sectionAddressBuffer[rpl->elfHeader.shstrndx])
+            .get();
+
+         fmt::format_to(reply, "<library name=\"{}\">", rplName);
+
+         for (auto i = 0u; i < rpl->elfHeader.shnum; ++i) {
+            auto sectionHeader =
+               virt_cast<cafe::loader::rpl::SectionHeader *>(
+                  virt_cast<virt_addr>(rpl->sectionHeaderBuffer) +
+                  (i * rpl->elfHeader.shentsize));
+
+            if (rpl->sectionAddressBuffer[i] &&
+                sectionHeader->size != 0 &&
+                (sectionHeader->flags & cafe::loader::rpl::SHF_ALLOC)) {
+               auto address = static_cast<uint32_t>(rpl->sectionAddressBuffer[i]);
+               fmt::format_to(reply, "<section address=\"{:#x}\"/>", address);
+            }
+         }
+
+         fmt::format_to(reply, "</library>");
+      }
+      cafe::loader::unlockLoader();
+
+      fmt::format_to(reply, "</library-list>");
+      sendCommand(std::string_view { reply.data(), reply.size() });
+      mLog->debug("libraries: {}", std::string_view { reply.data(), reply.size() });
    } else if (begins_with(command, "qXfer:threads:read:")) {
       fmt::memory_buffer reply;
       fmt::format_to(reply, "l<?xml version=\"1.0\"?>");
@@ -267,6 +313,7 @@ void GdbServer::handleGetHaltReason(const std::string &command)
 
 void GdbServer::handleReadRegister(const std::string &command)
 {
+   updateCurrentActiveThread();
    auto id = std::stoul(command.substr(1), 0, 16);
    auto value = uint32_t { 0 };
 
@@ -303,7 +350,7 @@ void GdbServer::handleReadRegister(const std::string &command)
 void GdbServer::handleReadGeneralRegisters(const std::string &command)
 {
    fmt::memory_buffer reply;
-
+updateCurrentActiveThread();
    for (auto i = 0; i < 32; ++i) {
       auto value = uint32_t { 0 };
       if (mCurrentThread.handle) {
@@ -346,9 +393,9 @@ void GdbServer::handleAddBreakpoint(const std::string &command)
    auto address = std::stoul(split[1], 0, 16);
    auto length = std::stoul(split[2], 0, 16);
 
-   if (type != BreakpointType::Execute) {
+   /*if (type != BreakpointType::Execute) {
       sendCommand("E02");
-   } else {
+   } else*/ {
       decaf::debug::addBreakpoint(address);
       sendCommand("OK");
    }
@@ -363,11 +410,24 @@ void GdbServer::handleRemoveBreakpoint(const std::string &command)
    auto address = std::stoul(split[1], 0, 16);
    auto length = std::stoul(split[2], 0, 16);
 
-   if (type != BreakpointType::Execute) {
+   /*if (type != BreakpointType::Execute) {
       sendCommand("E02");
-   } else {
+   } else */{
       decaf::debug::removeBreakpoint(address);
       sendCommand("OK");
+   }
+}
+
+void GdbServer::updateCurrentActiveThread() {
+   std::vector<decaf::debug::CafeThread> threads;
+
+   if (decaf::debug::sampleCafeThreads(threads)) {
+      for (auto &thread : threads) {
+         if (thread.id == mCurrentThread.id) {
+            mCurrentThread = thread;
+            break;
+         }
+      }
    }
 }
 
@@ -574,15 +634,15 @@ void GdbServer::process()
          mLog->error("Rejecting connection because we already have a client connected.");
          platform::socketClose(clientSocket);
       } else {
+         platform::socketSetBlocking(clientSocket, false);
          mClientSocket = clientSocket;
       }
    } else if (mClientSocket != InvalidSocket && FD_ISSET(mClientSocket, &readfds)) {
       while (mClientSocket != InvalidSocket) {
          char byte = 0;
          auto result = recv(mClientSocket, &byte, 1, 0);
-
          if (result < 0) {
-            if (platform::socketWouldBlock(result)) {
+            if (platform::socketWouldBlock(errno)) {
                break;
             } else {
                mLog->debug("Client disconnected, recv returned {}", result);

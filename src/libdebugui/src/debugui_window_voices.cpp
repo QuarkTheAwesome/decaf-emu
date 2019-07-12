@@ -24,7 +24,7 @@ VoicesWindow::draw()
       return;
    }
 
-   ImGui::Columns(9, "voicesList", false);
+   ImGui::Columns(11, "voicesList", false);
 
    ImGui::Text("ID"); ImGui::NextColumn();
    ImGui::Text("State"); ImGui::NextColumn();
@@ -35,6 +35,8 @@ VoicesWindow::draw()
    ImGui::Text("End Off"); ImGui::NextColumn();
    ImGui::Text("Loop Off"); ImGui::NextColumn();
    ImGui::Text("Loop Mode"); ImGui::NextColumn();
+   ImGui::Text("TV Master"); ImGui::NextColumn();
+   ImGui::Text("DRC Master"); ImGui::NextColumn();
    ImGui::Separator();
 
    auto voices = std::vector<decaf::debug::CafeVoice> {};
@@ -83,6 +85,12 @@ VoicesWindow::draw()
          ImGui::NextColumn();
 
          ImGui::Text("%d", voice.loopingEnabled);
+         ImGui::NextColumn();
+
+         ImGui::Text("%.02f:%.02f", voice.tvVolume[0][0], voice.tvVolume[1][0]);
+         ImGui::NextColumn();
+
+         ImGui::Text("%.02f:%.02f", voice.drcVolume[0][0], voice.drcVolume[1][0]);
          ImGui::NextColumn();
       }
    }

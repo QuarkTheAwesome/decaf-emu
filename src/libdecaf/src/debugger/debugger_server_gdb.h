@@ -51,6 +51,7 @@ public:
    void handleSetActiveThread(const std::string &command);
 
 private:
+   void updateCurrentActiveThread();
    std::shared_ptr<spdlog::logger> mLog;
 
    bool mPaused = false;

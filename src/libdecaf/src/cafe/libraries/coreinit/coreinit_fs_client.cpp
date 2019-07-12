@@ -42,14 +42,17 @@ FSAddClientEx(virt_ptr<FSClient> client,
               FSErrorFlag errorMask)
 {
    if (!internal::fsInitialised()) {
+      printf("no fs\n");
       return FSStatus::FatalError;
    }
 
    if (!client) {
+      printf("no cli\n");
       return FSStatus::FatalError;
    }
 
    if (internal::fsClientRegistered(client)) {
+      printf("already exists\n");
       internal::fsClientHandleFatalError(internal::fsClientGetBody(client),
                                          FSAStatus::AlreadyExists);
       return FSStatus::FatalError;
@@ -60,12 +63,14 @@ FSAddClientEx(virt_ptr<FSClient> client,
    auto clientHandle = internal::fsaShimOpen();
 
    if (clientHandle < 0) {
+      printf("no handle: %d\n", clientHandle);
       return FSStatus::FatalError;
    }
 
    if (!internal::fsRegisterClient(clientBody)) {
       internal::fsaShimClose(clientHandle);
       internal::fsClientHandleFatalError(clientBody, FSAStatus::MaxClients);
+      printf("reg fail\n");
       return FSStatus::FatalError;
    }
 
